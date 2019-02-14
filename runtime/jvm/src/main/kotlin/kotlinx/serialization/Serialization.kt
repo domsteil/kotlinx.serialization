@@ -58,3 +58,17 @@ internal fun <T> Class<T>.invokeSerializerGetter(vararg args: KSerializer<Any>):
 
     return serializer
 }
+
+/**
+ * Checks if an [obj] is an instance of a given [kclass].
+ *
+ * This check is a replacement for [KClass.isInstance] because
+ * on JVM it requires kotlin-reflect.jar in classpath
+ * (see https://youtrack.jetbrains.com/issue/KT-14720).
+ *
+ * On JS and Native, this function delegates to aforementioned
+ * [KClass.isInstance] since it is supported there out-of-the box;
+ * on JVM, it falls back to java.lang.Class.isInstance which causes
+ * difference when applied to function types with big arity.
+ */
+internal actual fun isInstance(kclass: KClass<*>, obj: Any): Boolean = kclass.java.isInstance(obj)

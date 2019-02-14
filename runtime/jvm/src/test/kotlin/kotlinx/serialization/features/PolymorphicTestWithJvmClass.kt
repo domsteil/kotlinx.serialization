@@ -17,29 +17,22 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.context.installPolymorphicModule
+import kotlinx.serialization.protobuf.*
+import org.junit.Test
+import java.util.*
 import kotlin.test.*
 
-@Serializable
-data class FooHolder(
-    val someMetadata: Int,
-    val payload: List<Foo>
-)
-
-@Serializable
-sealed class Foo {
+class PolymorphicTestWithJvmClass {
     @Serializable
-    data class Bar(val bar: Int) : Foo()
-    @Serializable
-    data class Baz(val baz: Int) : Foo()
-}
+    data class DateWrapper(@SerialId(1) @Serializable(with = PolymorphicSerializer::class) val date: Date)
 
-
-class SealedPolymorphismTest {
     @Test
-    fun saveSealedClassesList() {
-        val holder = FooHolder(42, listOf(Foo.Bar(1), Foo.Baz(2)))
-        val s = Json.stringify(holder)
-        assertEquals("""{"someMetadata":42,"payload":[["kotlinx.serialization.features.Foo.Bar",{"bar":1}],["kotlinx.serialization.features.Foo.Baz",{"baz":2}]]}""", s)
+    fun testPolymorphicWrappedOverride() {
+        val protobuf = ProtoBuf.apply { installPolymorphicModule(Date::class, DateSerializer) }
+        val obj = DateWrapper(Date())
+        val bytes = protobuf.dumps(obj)
+        val restored = protobuf.loads<DateWrapper>(bytes)
+        assertEquals(obj, restored)
     }
 }
