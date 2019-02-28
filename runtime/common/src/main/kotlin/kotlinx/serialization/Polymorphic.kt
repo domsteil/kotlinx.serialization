@@ -1,6 +1,6 @@
 package kotlinx.serialization
 
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KClass
 

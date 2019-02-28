@@ -16,7 +16,7 @@
 
 package kotlinx.serialization
 
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 
 class Mapper(context: SerialModule = EmptyModule) : AbstractSerialFormat(context) {
 

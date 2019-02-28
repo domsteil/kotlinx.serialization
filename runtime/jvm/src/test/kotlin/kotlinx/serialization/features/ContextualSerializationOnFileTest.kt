@@ -22,7 +22,7 @@ package kotlinx.serialization.features
 
 import kotlinx.serialization.ContextualSerialization
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.context.serializersModuleOf
+import kotlinx.serialization.module.serializersModuleOf
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals

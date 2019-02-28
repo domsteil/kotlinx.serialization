@@ -19,8 +19,8 @@ package kotlinx.serialization.cbor
 import kotlinx.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.context.EmptyModule
-import kotlinx.serialization.context.SerialModule
+import kotlinx.serialization.module.EmptyModule
+import kotlinx.serialization.module.SerialModule
 import kotlinx.serialization.internal.*
 import kotlin.experimental.or
 

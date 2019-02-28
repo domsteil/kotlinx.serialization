@@ -17,7 +17,7 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.SerializersModule
+import kotlinx.serialization.module.SerializersModule
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals

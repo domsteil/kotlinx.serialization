@@ -16,7 +16,7 @@
 
 package kotlinx.serialization
 
-import kotlinx.serialization.context.SerialModule
+import kotlinx.serialization.module.SerialModule
 import kotlinx.serialization.internal.EnumDescriptor
 
 interface Encoder {

@@ -17,7 +17,7 @@
 package kotlinx.serialization
 
 import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.internal.EnumDescriptor
 import kotlin.math.abs
 import kotlin.math.floor

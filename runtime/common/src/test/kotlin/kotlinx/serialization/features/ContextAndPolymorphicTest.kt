@@ -17,7 +17,7 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.Json
 import kotlin.test.*

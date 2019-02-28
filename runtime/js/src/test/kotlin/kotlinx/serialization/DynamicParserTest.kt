@@ -16,7 +16,7 @@
 
 package kotlinx.serialization
 
-import kotlinx.serialization.context.serializersModuleOf
+import kotlinx.serialization.module.serializersModuleOf
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.test.*
 

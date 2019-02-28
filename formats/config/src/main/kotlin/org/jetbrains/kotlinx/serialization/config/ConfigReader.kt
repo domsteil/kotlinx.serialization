@@ -19,7 +19,7 @@ package org.jetbrains.kotlinx.serialization.config
 import com.typesafe.config.*
 import kotlinx.serialization.*
 import kotlinx.serialization.CompositeDecoder.Companion.READ_DONE
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.internal.EnumDescriptor
 
 private val SerialKind.listLike get() = this == StructureKind.LIST || this == UnionKind.POLYMORPHIC

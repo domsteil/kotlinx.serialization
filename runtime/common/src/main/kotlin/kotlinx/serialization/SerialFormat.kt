@@ -1,7 +1,7 @@
 package kotlinx.serialization
 
-import kotlinx.serialization.context.SerialModule
-import kotlinx.serialization.context.plus
+import kotlinx.serialization.module.SerialModule
+import kotlinx.serialization.module.plus
 import kotlinx.serialization.internal.HexConverter
 
 internal const val InstallDeprecationText = "Install mutates format instance, pass module in constructor"

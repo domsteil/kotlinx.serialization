@@ -5,7 +5,7 @@
 package kotlinx.serialization.json
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.json.internal.*
 import kotlin.test.*
 

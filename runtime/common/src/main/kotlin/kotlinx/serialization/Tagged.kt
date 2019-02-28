@@ -17,8 +17,8 @@
 package kotlinx.serialization
 
 import kotlinx.serialization.CompositeDecoder.Companion.READ_ALL
-import kotlinx.serialization.context.EmptyModule
-import kotlinx.serialization.context.SerialModule
+import kotlinx.serialization.module.EmptyModule
+import kotlinx.serialization.module.SerialModule
 import kotlinx.serialization.internal.EnumDescriptor
 
 @SerialInfo

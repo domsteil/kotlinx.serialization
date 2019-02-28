@@ -16,7 +16,7 @@
 
 @file:Suppress("UNCHECKED_CAST")
 
-package kotlinx.serialization.context
+package kotlinx.serialization.module
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.isInstanceOf
@@ -78,5 +78,5 @@ public class SerializerAlreadyRegisteredException private constructor(msg: Strin
         concreteClass: KClass<*>
     ) : this("Serializer for $concreteClass already registered in the scope of $basePolyType")
 
-    constructor(forClass: KClass<*>) : this("Serializer for $forClass already registered in this context")
+    constructor(forClass: KClass<*>) : this("Serializer for $forClass already registered in this module")
 }

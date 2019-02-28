@@ -6,7 +6,7 @@
 package kotlinx.serialization.json
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.serializersModuleOf
+import kotlinx.serialization.module.serializersModuleOf
 import kotlinx.serialization.internal.*
 import kotlin.test.Test
 import kotlin.test.assertEquals

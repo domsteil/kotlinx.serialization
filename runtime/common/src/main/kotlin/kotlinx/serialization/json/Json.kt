@@ -4,7 +4,7 @@
 package kotlinx.serialization.json
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.*
+import kotlinx.serialization.module.*
 import kotlinx.serialization.json.internal.*
 import kotlin.jvm.JvmField
 import kotlin.reflect.KClass
@@ -93,7 +93,7 @@ public class Json(
     }
 
     /**
-     * Serializes [value] into an equivalent [JsonElement] using serializer registered in the context.
+     * Serializes [value] into an equivalent [JsonElement] using serializer registered in the module.
      * @throws [JsonException] subclass in case of serialization error.
      */
     @ImplicitReflectionSerializer
@@ -130,7 +130,7 @@ public class Json(
     }
 
     /**
-     * Deserializes [json] element into a corresponding object of type [T] using serializer registered in the context.
+     * Deserializes [json] element into a corresponding object of type [T] using serializer registered in the module.
      * @throws [JsonException] subclass in case of serialization error.
      */
     @ImplicitReflectionSerializer

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package kotlinx.serialization.context
+package kotlinx.serialization.module
 
 import kotlinx.serialization.*
 import kotlin.reflect.KClass

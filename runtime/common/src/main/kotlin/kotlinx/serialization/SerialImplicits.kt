@@ -1,6 +1,6 @@
 package kotlinx.serialization
 
-import kotlinx.serialization.context.getOrDefault
+import kotlinx.serialization.module.getOrDefault
 import kotlinx.serialization.internal.HexConverter
 
 

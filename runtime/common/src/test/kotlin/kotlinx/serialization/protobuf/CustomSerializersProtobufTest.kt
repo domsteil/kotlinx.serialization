@@ -16,7 +16,7 @@
 
 package kotlinx.serialization.protobuf
 
-import kotlinx.serialization.context.serializersModuleOf
+import kotlinx.serialization.module.serializersModuleOf
 import kotlinx.serialization.dumps
 import kotlinx.serialization.json.JsonCustomSerializersTest.*
 import kotlinx.serialization.loads

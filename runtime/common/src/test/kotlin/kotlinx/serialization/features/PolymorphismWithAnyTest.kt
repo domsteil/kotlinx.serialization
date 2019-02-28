@@ -17,8 +17,8 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.SerializersModule
-import kotlinx.serialization.context.plus
+import kotlinx.serialization.module.SerializersModule
+import kotlinx.serialization.module.plus
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.test.assertStringFormAndRestored
 import kotlin.test.Test

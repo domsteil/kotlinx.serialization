@@ -18,7 +18,7 @@ package kotlinx.serialization.features
 
 import kotlinx.serialization.SerialId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.context.SerializersModule
+import kotlinx.serialization.module.SerializersModule
 
 @Serializable
 open class PolyBase(@SerialId(1) val id: Int) {

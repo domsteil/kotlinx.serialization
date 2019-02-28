@@ -5,7 +5,7 @@
 package kotlinx.serialization.json
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.EmptyModule
+import kotlinx.serialization.module.EmptyModule
 
 @Deprecated(level = DeprecationLevel.WARNING, message = "Use Json methods instead")
 class JsonTreeMapper(val encodeDefaults: Boolean = true) : AbstractSerialFormat(EmptyModule) {

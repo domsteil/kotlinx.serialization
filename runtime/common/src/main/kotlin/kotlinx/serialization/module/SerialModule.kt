@@ -1,6 +1,6 @@
 @file:Suppress("UNCHECKED_CAST", "RedundantVisibilityModifier")
 
-package kotlinx.serialization.context
+package kotlinx.serialization.module
 
 import kotlinx.serialization.*
 import kotlin.reflect.KClass
