@@ -16,13 +16,25 @@
 
 package kotlinx.serialization
 
-import kotlinx.serialization.context.getByValueOrDefault
-import kotlinx.serialization.context.getOrDefault
+import kotlinx.serialization.context.*
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KClass
 
+/**
+ * This class provides support for retrieving a serializer in runtime,
+ * instead of using the one precompiled by the serialization plugin.
+ *
+ * Typical usage of ContextSerializer would be serialization of class which does not have
+ * precompiled serializer (e.g. Java class or class from 3rd party library);
+ * or desire to override serialized class form in one dedicated output format.
+ *
+ * Serializers are being looked for in [SerialModule] which tied to particular [Encoder] or [Decoder],
+ * using statically-known (compile-time) [KClass].
+ * To create serial module, use [SerializersModule] constructor function.
+ * To pass it to encoder and decoder, consult particular [SerialFormat]'s documentation.
+ */
 @ImplicitReflectionSerializer
-class ContextSerializer<T : Any>(val serializableClass: KClass<T>) : KSerializer<T> {
+class ContextSerializer<T : Any>(private val serializableClass: KClass<T>) : KSerializer<T> {
     override fun serialize(encoder: Encoder, obj: T) {
         val s = encoder.context.getByValueOrDefault(obj)
         encoder.encodeSerializableValue(s, obj)

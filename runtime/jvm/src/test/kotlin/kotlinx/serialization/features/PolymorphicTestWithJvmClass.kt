@@ -17,11 +17,11 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.installPolymorphicModule
-import kotlinx.serialization.protobuf.*
+import kotlinx.serialization.context.SerializersModule
+import kotlinx.serialization.protobuf.ProtoBuf
 import org.junit.Test
 import java.util.*
-import kotlin.test.*
+import kotlin.test.assertEquals
 
 class PolymorphicTestWithJvmClass {
     @Serializable
@@ -29,7 +29,7 @@ class PolymorphicTestWithJvmClass {
 
     @Test
     fun testPolymorphicWrappedOverride() {
-        val protobuf = ProtoBuf.apply { installPolymorphicModule(Date::class, DateSerializer) }
+        val protobuf = ProtoBuf(context = SerializersModule { polymorphic(Date::class, DateSerializer) })
         val obj = DateWrapper(Date())
         val bytes = protobuf.dumps(obj)
         val restored = protobuf.loads<DateWrapper>(bytes)

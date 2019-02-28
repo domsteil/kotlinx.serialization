@@ -18,37 +18,40 @@
 
 package kotlinx.serialization.context
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.isInstanceOf
+import kotlin.collections.set
 import kotlin.reflect.KClass
 
 private typealias SerializersMap = MutableMap<KClass<*>, KSerializer<*>>
 
 /**
- * A default implementation of [MutableSerialContext]
+ * A default implementation of [SerialModule]
  * which uses hash maps to store serializers associated with KClasses.
- *
- * Although it is rarely necessary to instantiate it in user code,
- * one may want to use it to implement their own context-aware
- * serialization format.
  */
-class MutableSerialContextImpl(private val parentContext: SerialContext? = null): MutableSerialContext {
+@PublishedApi
+internal class SerialModuleImpl() : SerialModule {
 
     private val classMap: SerializersMap = hashMapOf()
 
     private val polyMap: MutableMap<KClass<*>, SerializersMap> = hashMapOf()
     private val inverseClassNameMap: MutableMap<KClass<*>, MutableMap<String, KSerializer<*>>> = hashMapOf()
 
-    override fun <T: Any> registerSerializer(forClass: KClass<T>, serializer: KSerializer<T>) {
+    internal fun <T : Any> registerSerializer(forClass: KClass<T>, serializer: KSerializer<T>) {
+        if (forClass in classMap) throw SerializerAlreadyRegisteredException(forClass)
         classMap[forClass] = serializer
     }
 
-    override fun <Base : Any, Sub : Base> registerPolymorphicSerializer(
+    internal fun <Base : Any, Sub : Base> registerPolymorphicSerializer(
         basePolyType: KClass<Base>,
         concreteClass: KClass<Sub>,
         concreteSerializer: KSerializer<Sub>
     ) {
         val name = concreteSerializer.descriptor.name
-        polyMap.getOrPut(basePolyType, ::hashMapOf)[concreteClass] = concreteSerializer
+        polyMap.getOrPut(basePolyType, ::hashMapOf).let { baseClassMap ->
+            if (concreteClass in baseClassMap) throw SerializerAlreadyRegisteredException(basePolyType, concreteClass)
+            baseClassMap[concreteClass] = concreteSerializer
+        }
         inverseClassNameMap.getOrPut(basePolyType, ::hashMapOf)[name] = concreteSerializer
     }
 
@@ -66,5 +69,14 @@ class MutableSerialContextImpl(private val parentContext: SerialContext? = null)
     }
 
     override fun <T: Any> get(kclass: KClass<T>): KSerializer<T>? = classMap[kclass] as? KSerializer<T>
-            ?: parentContext?.get(kclass)
+}
+
+@Suppress("RedundantVisibilityModifier")
+public class SerializerAlreadyRegisteredException private constructor(msg: String) : IllegalArgumentException(msg) {
+    constructor(
+        basePolyType: KClass<*>,
+        concreteClass: KClass<*>
+    ) : this("Serializer for $concreteClass already registered in the scope of $basePolyType")
+
+    constructor(forClass: KClass<*>) : this("Serializer for $forClass already registered in this context")
 }

@@ -1,41 +1,83 @@
-/*
- * Copyright 2018 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+@file:Suppress("UNCHECKED_CAST", "RedundantVisibilityModifier")
 
 package kotlinx.serialization.context
 
 import kotlinx.serialization.*
+import kotlin.reflect.KClass
 
 /**
- * SerialModule is a collection of classes associated with its serializers,
- * postponed for runtime resolution. Its single purpose is to register all
- * serializers it has in the given [MutableSerialContext].
+ * Serial module is a collection of serializers used by [ContextSerializer] and [PolymorphicSerializer]
+ * to override or provide serializers at the runtime, whereas at he compile-time they provided by the
+ * serialization plugin.
  *
- * Typically, one can create a module (using library implementation or anonymous class)
- * per file, or per package, to hold
- * all serializers together and then register it in some [AbstractSerialFormat].
+ * It can be regarded as a map where serializers are found using statically known KClasses.
  *
- * @see AbstractSerialFormat.install
+ * To allow a runtime resolving of serializers and usage of the particular SerialModule,
+ * one of the special annotations must be used.
+ *
+ * @see ContextualSerialization
+ * @see Polymorphic
  */
-interface SerialModule {
+public interface SerialModule {
 
     /**
-     * Registers everything it has in the [context].
+     * Returns a dependent serializer associated with a given [kclass].
      *
-     * @see MutableSerialContext.registerSerializer
-     * @see MutableSerialContext.registerPolymorphicSerializer
+     * This method is used in context-sensitive operations
+     * on a property marked with [ContextualSerialization], by a [ContextSerializer]
      */
-    fun registerIn(context: MutableSerialContext)
+    public operator fun <T: Any> get(kclass: KClass<T>): KSerializer<T>?
+
+    /**
+     * Returns serializer registered for polymorphic serialization of an [obj]'s class in a scope of [basePolyType].
+     *
+     * This method is used inside a [PolymorphicSerializer] when statically known class of a property marked with [Polymorphic]
+     * is [basePolyType], and the actual object in this property is [obj].
+     */
+    public fun <T : Any> resolveFromBase(basePolyType: KClass<T>, obj: T): KSerializer<out T>?
+
+    /**
+     * Returns serializer registered for polymorphic serialization of a class with [serializedClassName] in a scope of [basePolyType].
+     *
+     * This method is used inside a [PolymorphicSerializer] when statically known class of a property marked with [Polymorphic]
+     * is [basePolyType], and the class name received from [Decoder] is a [serializedClassName].
+     */
+    public fun <T : Any> resolveFromBase(basePolyType: KClass<T>, serializedClassName: String): KSerializer<out T>?
+}
+
+/**
+ * Returns a dependent serializer associated with a given reified type.
+ *
+ * This method is used in context-sensitive operations
+ * on a property marked with [ContextualSerialization], by a [ContextSerializer]
+ */
+public inline fun <reified T: Any> SerialModule.get(): KSerializer<T>? = get(T::class)
+
+/**
+ * Returns a serializer associated with KClass which given [value] has.
+ *
+ * This method is used in context-sensitive operations
+ * on a property marked with [ContextualSerialization], by a [ContextSerializer]
+ */
+public fun <T: Any> SerialModule.getByValue(value: T): KSerializer<T>? {
+    val klass = value::class
+    return get(klass) as? KSerializer<T>
+}
+
+@ImplicitReflectionSerializer
+public fun <T: Any> SerialModule?.getOrDefault(klass: KClass<T>) = this?.let { get(klass) } ?: klass.serializer()
+
+@ImplicitReflectionSerializer
+public fun <T: Any> SerialModule?.getByValueOrDefault(value: T): KSerializer<T> = this?.let { getByValue(value) } ?: value::class.serializer() as KSerializer<T>
+
+/**
+ * A [SerialModule] which always returns `null`.
+ */
+public object EmptyModule: SerialModule {
+    override fun <T : Any> get(kclass: KClass<T>): KSerializer<T>? = null
+    override fun <T : Any> resolveFromBase(basePolyType: KClass<T>, obj: T): KSerializer<out T>? =
+        null
+
+    override fun <T : Any> resolveFromBase(basePolyType: KClass<T>, serializedClassName: String): KSerializer<out T>? =
+        null
 }

@@ -1,7 +1,7 @@
 package kotlinx.serialization
 
+import kotlinx.serialization.context.*
 import kotlinx.serialization.internal.SerialClassDescImpl
-import kotlinx.serialization.context.MutableSerialContext
 import kotlin.reflect.KClass
 
 /**
@@ -20,7 +20,8 @@ object PolymorphicClassDescriptor : SerialClassDescImpl("kotlin.Any") {
 /**
  * Thrown when a subclass was not registered for polymorphic serialization in a scope of given `basePolyType`.
  *
- * @see MutableSerialContext.registerPolymorphicSerializer
+ * @see SerialModule
+ * @see SerializersModuleBuilder.polymorphic
  */
 class SubtypeNotRegisteredException(subClassName: String, basePolyType: KClass<*>):
     SerializationException("$subClassName is not registered for polymorphic serialization in the scope of $basePolyType") {
@@ -35,7 +36,8 @@ class SubtypeNotRegisteredException(subClassName: String, basePolyType: KClass<*
  * However, it allows registering subclasses in runtime, not compile-time. For example, it allows adding additional subclasses to the registry
  * that were defined in a separate module, dependent on the base module with the base class.
  *
- * Polymorphic serialization is never enabled automatically. To enable this feature, use @SerializableWith(PolymorphicSerializer::class) or just @Polymorphic on the property.
+ * Polymorphic serialization is never enabled automatically. To enable this feature, use @SerializableWith(PolymorphicSerializer::class)
+ * or just @ [Polymorphic] on the property.
  *
  * Another security requirement is that we only allow registering subclasses in the scope of a base class called [basePolyType]
  * The motivation for this is easily understandable from the example:
@@ -54,15 +56,18 @@ abstract class BaseResponse()
     @Polymorphic val response: BaseResponse
 )
 ```
- * In this example, both request and response in Message are serializable with [PolymorphicSerializer] because of the annotation on them;
- * BaseRequest and BaseResponse became [basePolyType]s as they're captured during compile time by the plugin. They are not required to be serializable by themselves.
+ * In this example, both request and response in Message are serializable with
+ * [PolymorphicSerializer] because of the annotation on them;
+ * BaseRequest and BaseResponse became [basePolyType]s as they're captured during compile time by the plugin.
+ * They are not required to be serializable by themselves.
  * Yet PolymorphicSerializer for request should only allow RequestA and RequestB serializers, and none of the response's serializers.
- * This is achieved via [MutableSerialContext.registerPolymorphicSerializer] function, which accepts two KClass references.
+ * This is achieved via special registration function, which accepts two KClass references.
  *
  * By default (without special support from [Encoder]), polymorphic values are serialized as list with
  * two elements: classname (String) and the object itself.
  *
- * @see MutableSerialContext.registerPolymorphicSerializer
+ * @see SerializersModule
+ * @see SerializersModuleBuilder.polymorphic
  */
 @Suppress("UNCHECKED_CAST")
 class PolymorphicSerializer<T : Any>(private val basePolyType: KClass<T>) : KSerializer<Any> {

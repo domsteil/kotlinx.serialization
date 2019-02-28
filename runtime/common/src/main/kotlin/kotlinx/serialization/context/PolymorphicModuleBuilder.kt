@@ -22,22 +22,27 @@ import kotlinx.serialization.*
 import kotlin.reflect.KClass
 
 /**
- * A [SerialModule] which registers all its content for polymorphic serialization in the scope of [baseClass].
+ * A builder which registers all its content for polymorphic serialization in the scope of [baseClass].
  * If [baseSerializer] is present, registers it as a serializer for [baseClass] (which is useful if base class is serializable).
  * Subclasses with its serializers can be added via [addSubclass] or [unaryPlus].
  *
+ * To obtain instance of this builder, use [SerializersModuleBuilder.polymorphic] DSL function.
+ *
  * @see PolymorphicSerializer
- * @see MutableSerialContext.registerPolymorphicSerializer
+ * @see SerializersModule
  */
 @Suppress("UNCHECKED_CAST")
-class PolymorphicModule<Base : Any>(val baseClass: KClass<Base>, val baseSerializer: KSerializer<Base>? = null) :
-    SerialModule {
+public class PolymorphicModuleBuilder<Base : Any>
+@PublishedApi internal constructor(
+    private val baseClass: KClass<Base>,
+    private val baseSerializer: KSerializer<Base>? = null
+) {
     private val subclasses: MutableList<Pair<KClass<out Base>, KSerializer<out Base>>> = mutableListOf()
 
-    override fun registerIn(context: MutableSerialContext) {
-        if (baseSerializer != null) context.registerPolymorphicSerializer(baseClass, baseClass, baseSerializer)
+    @PublishedApi internal fun buildTo(module: SerialModuleImpl) {
+        if (baseSerializer != null) module.registerPolymorphicSerializer(baseClass, baseClass, baseSerializer)
         subclasses.forEach { (k, s) ->
-            context.registerPolymorphicSerializer(
+            module.registerPolymorphicSerializer(
                 baseClass,
                 k as KClass<Base>,
                 s as KSerializer<Base>
@@ -46,8 +51,8 @@ class PolymorphicModule<Base : Any>(val baseClass: KClass<Base>, val baseSeriali
     }
 
     /**
-     * Adds a [serializer] to this module as a serializer for [subclass].
-     * When this module will be registered in context, [serializer] would be registered for [subclass]
+     * Adds a [serializer] to this builder as a serializer for [subclass].
+     * In the module created with this builder, [serializer] would be registered for [subclass]
      * in the scope of [baseClass].
      */
     public fun <T : Base> addSubclass(subclass: KClass<T>, serializer: KSerializer<T>) {
@@ -68,53 +73,23 @@ class PolymorphicModule<Base : Any>(val baseClass: KClass<Base>, val baseSeriali
 
 
     /**
-     * Adds all subtypes of this module to a new module with a scope of [newPolyBase].
+     * Adds all subtypes of this builder to a new builder with a scope of [newPolyBase].
      *
      * If base type of this module had a serializer, adds it, too.
      *
      * @param newPolyBase A new base polymorphic type. Should be supertype of current [baseClass].
      * @param newPolyBaseSerializer Serializer for the new base type, if needed.
-     * @return A new polymorphic module with subclasses from this and [newPolyBase] as basePolyType.
+     * @return A new builder with subclasses from this and [newPolyBase] as basePolyType.
      */
-    public fun <NewBase : Any> rebind(
+    @PublishedApi internal fun <NewBase : Any> changeBase(
         newPolyBase: KClass<NewBase>,
         newPolyBaseSerializer: KSerializer<NewBase>? = null
-    ): PolymorphicModule<NewBase> {
-        val newModule = PolymorphicModule(newPolyBase, newPolyBaseSerializer)
+    ): PolymorphicModuleBuilder<NewBase> {
+        val newModule = PolymorphicModuleBuilder(newPolyBase, newPolyBaseSerializer)
         baseSerializer?.let { newModule.addSubclass(baseClass as KClass<NewBase>, baseSerializer as KSerializer<NewBase>) }
         subclasses.forEach { (k, v) ->
             newModule.addSubclass(k as KClass<NewBase>, v as KSerializer<NewBase>)
         }
         return newModule
     }
-
-    /**
-     * Adds all subtypes of this module to a new module with a scope of [newPolyBase]
-     * and returns a composite module of this module and new.
-     *
-     * If base type of this module had a serializer, adds it, too.
-     *
-     * @param newPolyBase A new base polymorphic type. Should be supertype of current [baseClass].
-     * @param newPolyBaseSerializer Serializer for the new base type, if needed.
-     * @return A composite of: new polymorphic module with subclasses from this and [newPolyBase] as basePolyType; current.
-     */
-    public fun <NewBase : Any> bind(
-        newPolyBase: KClass<NewBase>,
-        newPolyBaseSerializer: KSerializer<NewBase>? = null
-    ): CompositeModule = rebind(newPolyBase, newPolyBaseSerializer) + this
-}
-
-/**
- * Convenient DSL for [PolymorphicModule]
- *
- * @see PolymorphicModule.unaryPlus
- */
-public inline fun <Base : Any> SerialFormat.installPolymorphicModule(
-    baseClass: KClass<Base>,
-    baseSerializer: KSerializer<Base>? = null,
-    builder: PolymorphicModule<Base>.() -> Unit = {}
-) {
-    val module = PolymorphicModule(baseClass, baseSerializer)
-    module.builder()
-    install(module)
 }

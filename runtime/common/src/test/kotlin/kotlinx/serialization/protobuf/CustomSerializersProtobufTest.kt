@@ -16,9 +16,9 @@
 
 package kotlinx.serialization.protobuf
 
-import kotlinx.serialization.json.JsonCustomSerializersTest.*
-import kotlinx.serialization.context.SingletonModule
+import kotlinx.serialization.context.serializersModuleOf
 import kotlinx.serialization.dumps
+import kotlinx.serialization.json.JsonCustomSerializersTest.*
 import kotlinx.serialization.loads
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,7 +26,7 @@ import kotlin.test.assertEquals
 
 class CustomSerializersProtobufTest {
 
-    private fun protoBufWithB() = ProtoBuf().apply { install(SingletonModule(B::class, BSerializer)) }
+    private fun protoBufWithB() = ProtoBuf(context = serializersModuleOf(B::class, BSerializer))
 
     @Test
     fun writeCustom() {

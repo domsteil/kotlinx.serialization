@@ -9,15 +9,14 @@ import kotlinx.serialization.internal.HexConverter
  * using reflection, e.g. from KClass or instance itself.
  *
  * This approach is discouraged in general because it has several drawbacks, including:
- * - Reflection is not available on Kotlin/Native and is very limited on Kotlin/JS
- * - Reflection won't infer correct serializers for generic classes, like collections
- * - SerialContext may not be available, since it is bound to particular format, not serializer
- * - Such reflection calls are usually slow
+ * - Reflection is not available on Kotlin/Native and is very limited on Kotlin/JS.
+ * - Reflection won't infer correct serializers for generic classes, like collections.
+ * - SerialModule may not be available, since it is bound to particular format, not serializer.
+ * - Such reflection calls are usually slow.
  *
  * It's always better to specify serializer explicitly, using generated `.serializer()`
  * function on serializable class' companion.
  */
-
 @Experimental
 annotation class ImplicitReflectionSerializer
 

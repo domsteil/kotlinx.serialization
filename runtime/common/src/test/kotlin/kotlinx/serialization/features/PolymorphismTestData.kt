@@ -18,7 +18,7 @@ package kotlinx.serialization.features
 
 import kotlinx.serialization.SerialId
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.context.PolymorphicModule
+import kotlinx.serialization.context.SerializersModule
 
 @Serializable
 open class PolyBase(@SerialId(1) val id: Int) {
@@ -46,5 +46,8 @@ open class PolyBase(@SerialId(1) val id: Int) {
 @Serializable
 data class PolyDerived(@SerialId(2) val s: String) : PolyBase(1)
 
-val BaseAndDerivedModule = PolymorphicModule(PolyBase::class, PolyBase.serializer())
-    .apply { +(PolyDerived::class to PolyDerived.serializer()) }
+val BaseAndDerivedModule = SerializersModule {
+    polymorphic(PolyBase::class, PolyBase.serializer()) {
+        +(PolyDerived::class to PolyDerived.serializer())
+    }
+}

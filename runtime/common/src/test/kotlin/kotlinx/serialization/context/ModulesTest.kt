@@ -17,8 +17,8 @@
 package kotlinx.serialization.context
 
 import kotlinx.serialization.*
-import kotlin.test.Test
-import kotlin.test.assertSame
+import kotlin.reflect.KClass
+import kotlin.test.*
 
 class ModulesTest {
     @Serializable
@@ -33,19 +33,17 @@ class ModulesTest {
     @Serializer(forClass = B::class)
     object BSerializer : KSerializer<B>
 
-    private fun SerialModule.toContext(): SerialContext =
-        MutableSerialContextImpl().also { context -> registerIn(context) }
-
     private fun SerialModule.assertModuleHas(aSerializer: Boolean = false, bSerializer: Boolean = false) {
-        with(this.toContext()) {
+        with(this) {
             assertSame(if (aSerializer) ASerializer else null, get<A>())
             assertSame(if (bSerializer) BSerializer else null, get<B>())
         }
     }
 
+
     @Test
     fun testSingletonModule() {
-        val module = SingletonModule(A::class, ASerializer)
+        val module = serializersModuleOf(A::class, ASerializer)
         module.assertModuleHas(
             aSerializer = true,
             bSerializer = false
@@ -54,18 +52,18 @@ class ModulesTest {
 
     @Test
     fun testMapModule() {
-        val module1 = MapModule(mapOf(B::class to BSerializer))
+        val module1 = serializersModuleOf(mapOf(B::class to BSerializer))
         module1.assertModuleHas(
             aSerializer = false,
             bSerializer = true
         )
 
-        MapModule(mapOf(A::class to ASerializer, B::class to BSerializer)).assertModuleHas(
+        serializersModuleOf(mapOf(A::class to ASerializer, B::class to BSerializer)).assertModuleHas(
             aSerializer = true,
             bSerializer = true
         )
 
-        MapModule(module1.map + (A::class to ASerializer)).assertModuleHas(
+        (module1 + serializersModuleOf(A::class, ASerializer)).assertModuleHas(
             aSerializer = true,
             bSerializer = true
         )
@@ -73,15 +71,15 @@ class ModulesTest {
 
     @Test
     fun testCompositeModule() {
-        val moduleA = SingletonModule(ASerializer)
-        val moduleB = MapModule(mapOf(B::class to BSerializer))
+        val moduleA = serializersModule(ASerializer)
+        val moduleB = serializersModuleOf(mapOf(B::class to BSerializer))
 
         (moduleA + moduleB).assertModuleHas(
             aSerializer = true,
             bSerializer = true
         )
 
-        val composite = CompositeModule()
+        var composite: SerialModule = CompositeModule()
         composite.assertModuleHas(
             aSerializer = false,
             bSerializer = false
@@ -96,5 +94,25 @@ class ModulesTest {
             aSerializer = true,
             bSerializer = true
         )
+    }
+
+    @Test
+    fun testOverwriteSerializer() {
+        val moduleA = SerializersModule {
+            contextual(A::class, ASerializer)
+            assertFailsWith<SerializerAlreadyRegisteredException> {
+                contextual(A::class, ASerializer)
+            }
+        }
+        moduleA.assertModuleHas(aSerializer = true, bSerializer = false)
+    }
+
+    @Test
+    fun testPlusIsLeftBiased() {
+        val incorrect = serializersModuleOf(mapOf<KClass<*>, KSerializer<*>>(A::class to BSerializer))
+        val correct = serializersModuleOf(mapOf<KClass<*>, KSerializer<*>>(A::class to ASerializer))
+        correct.assertModuleHas(aSerializer = true, bSerializer = false)
+        val sum = correct + incorrect
+        sum.assertModuleHas(aSerializer = true, bSerializer = false)
     }
 }

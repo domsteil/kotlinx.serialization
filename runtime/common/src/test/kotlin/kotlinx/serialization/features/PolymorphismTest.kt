@@ -17,8 +17,7 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.PolymorphicModule
-import kotlinx.serialization.context.plus
+import kotlinx.serialization.context.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test
@@ -32,13 +31,15 @@ class PolymorphismTest {
         @SerialId(2) @Polymorphic val polyBase2: PolyBase
     )
 
-    private val moduleInstaller: SerialFormat.() -> Unit = {
-        // second is to run with PolyDerived alone in `testExplicit`
-        install(BaseAndDerivedModule + PolymorphicModule(PolyDerived::class, PolyDerived.serializer()))
+    private val module: SerialModule = BaseAndDerivedModule + SerializersModule {
+        polymorphic(
+            PolyDerived::class,
+            PolyDerived.serializer()
+        )
     }
 
-    private val json = Json(unquoted = true).apply(moduleInstaller)
-    private val protobuf = ProtoBuf.apply(moduleInstaller)
+    private val json = Json(unquoted = true, context = module)
+    private val protobuf = ProtoBuf(context = module)
 
     @Test
     fun testInheritanceJson() {

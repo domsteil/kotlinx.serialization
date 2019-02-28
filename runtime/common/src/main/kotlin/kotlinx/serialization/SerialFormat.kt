@@ -1,23 +1,29 @@
 package kotlinx.serialization
 
-import kotlinx.serialization.context.*
+import kotlinx.serialization.context.SerialModule
+import kotlinx.serialization.context.plus
 import kotlinx.serialization.internal.HexConverter
 
+internal const val InstallDeprecationText = "Install mutates format instance, pass module in constructor"
+
 interface SerialFormat {
+    @Deprecated(InstallDeprecationText)
     fun install(module: SerialModule)
 
-    val context: SerialContext
+    val context: SerialModule
 }
 
-abstract class AbstractSerialFormat: SerialFormat {
-    protected val mutableContext: MutableSerialContext = MutableSerialContextImpl()
+abstract class AbstractSerialFormat(context: SerialModule): SerialFormat {
 
+    // this could be a constructor val after `install` would be deleted
+    final override var context: SerialModule = context
+        private set
+
+    @Suppress("DeprecatedCallableAddReplaceWith")
+    @Deprecated(InstallDeprecationText)
     override fun install(module: SerialModule) {
-        module.registerIn(mutableContext)
+        context = module + context
     }
-
-    override val context: SerialContext
-        get() = mutableContext
 }
 
 interface BinaryFormat: SerialFormat {

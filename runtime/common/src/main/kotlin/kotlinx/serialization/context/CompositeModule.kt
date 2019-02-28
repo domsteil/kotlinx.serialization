@@ -16,33 +16,43 @@
 
 package kotlinx.serialization.context
 
+import kotlinx.serialization.KSerializer
+import kotlin.reflect.KClass
+
 /**
  * A [SerialModule] for composing other modules
  *
- * Has convenient operator [plusAssign].
- *
  * @see SerialModule.plus
  */
-class CompositeModule(modules: List<SerialModule> = listOf()): SerialModule {
-    constructor(vararg modules: SerialModule) : this(modules.toList())
+internal class CompositeModule(val modules: List<SerialModule> = listOf()): SerialModule {
 
-    private val modules: MutableList<SerialModule> = modules.toMutableList()
+    override fun <T : Any> get(kclass: KClass<T>): KSerializer<T>? =
+        findInModules { get(kclass) }
 
-    override fun registerIn(context: MutableSerialContext) {
-        modules.forEach { it.registerIn(context) }
+    override fun <T : Any> resolveFromBase(basePolyType: KClass<T>, obj: T): KSerializer<out T>? =
+        findInModules { resolveFromBase(basePolyType, obj) }
+
+    override fun <T : Any> resolveFromBase(basePolyType: KClass<T>, serializedClassName: String): KSerializer<out T>? =
+        findInModules { resolveFromBase(basePolyType, serializedClassName) }
+
+    private inline fun <R> findInModules(maybeResult: SerialModule.() -> R?): R? {
+        modules.forEach { module ->
+            module.maybeResult()?.let { return it }
+        }
+        return null
     }
-
-    public operator fun plusAssign(module: SerialModule): Unit { modules += module }
-    public fun addModule(module: SerialModule) = plusAssign(module)
 }
 
 /**
  * Composes [this] module with [other].
+ *
+ * Module from the left-hand side have higher priority, i.e.
+ * if KClass `A` is registered in both modules,
+ * serializer from the left module would be taken.
  */
-operator fun SerialModule.plus(other: SerialModule): CompositeModule {
-    if (this is CompositeModule) {
-        this.addModule(other)
-        return this
-    }
-    return CompositeModule(this, other)
+@Suppress("RedundantVisibilityModifier")
+public operator fun SerialModule.plus(other: SerialModule): SerialModule {
+    val list1 = if (this is CompositeModule) this.modules else listOf(this)
+    val list2 = if (other is CompositeModule) other.modules else listOf(other)
+    return CompositeModule(list1 + list2)
 }

@@ -16,9 +16,9 @@
 
 package kotlinx.serialization
 
-import kotlinx.serialization.context.getOrDefault
+import kotlinx.serialization.context.*
 
-class Mapper : AbstractSerialFormat() {
+class Mapper(context: SerialModule = EmptyModule) : AbstractSerialFormat(context) {
 
     inner class OutMapper : NamedValueEncoder() {
         init {

@@ -17,7 +17,8 @@
 package kotlinx.serialization.features
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.installPolymorphicModule
+import kotlinx.serialization.context.SerializersModule
+import kotlinx.serialization.context.plus
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.test.assertStringFormAndRestored
 import kotlin.test.Test
@@ -53,7 +54,8 @@ class PolymorphismWithAnyTest {
 
     @Test
     fun withModules() {
-        val json = Json().apply { installPolymorphicModule(Any::class) { +(IntData::class to IntData.serializer()) } }
+        val json =
+            Json(context = SerializersModule { polymorphic(Any::class) { +(IntData::class to IntData.serializer()) } })
         assertStringFormAndRestored(
             expected = """{"data":{"a":["kotlinx.serialization.IntData",{"intV":42}]}}""",
             original = MyPolyData(mapOf("a" to IntData(42))),
@@ -67,7 +69,7 @@ class PolymorphismWithAnyTest {
      */
     @Test
     fun failWithModulesNotInAnyScope() {
-        val json = Json().apply { install(BaseAndDerivedModule) }
+        val json = Json(context = BaseAndDerivedModule)
         assertFailsWith<SubtypeNotRegisteredException> {
             json.stringify(
                 MyPolyData.serializer(),
@@ -76,9 +78,16 @@ class PolymorphismWithAnyTest {
         }
     }
 
+    private val BaseAndDerivedModuleAtAny = SerializersModule {
+        polymorphic(Any::class) {
+            +(PolyDerived::class to PolyDerived.serializer())
+        }
+    }
+
+
     @Test
     fun rebindModules() {
-        val json = Json().apply { install(BaseAndDerivedModule.rebind(Any::class)) }
+        val json = Json(context = BaseAndDerivedModuleAtAny)
         assertStringFormAndRestored(
             expected = """{"data":{"a":["kotlinx.serialization.features.PolyDerived",{"id":1,"s":"foo"}]}}""",
             original = MyPolyData(mapOf("a" to PolyDerived("foo"))),
@@ -92,7 +101,7 @@ class PolymorphismWithAnyTest {
      */
     @Test
     fun failWithModulesNotInParticularScope() {
-        val json = Json().apply { install(BaseAndDerivedModule.rebind(Any::class)) }
+        val json = Json(context = BaseAndDerivedModuleAtAny)
         assertFailsWith<SubtypeNotRegisteredException> {
             json.stringify(
                 MyPolyDataWithPolyBase.serializer(),
@@ -103,7 +112,7 @@ class PolymorphismWithAnyTest {
 
     @Test
     fun bindModules() {
-        val json = Json().apply { install(BaseAndDerivedModule.bind(Any::class)) }
+        val json = Json(context = (BaseAndDerivedModuleAtAny + BaseAndDerivedModule))
         assertStringFormAndRestored(
             expected = """{"data":{"a":["kotlinx.serialization.features.PolyDerived",{"id":1,"s":"foo"}]},"polyBase":["kotlinx.serialization.features.PolyDerived",{"id":1,"s":"foo"}]}""",
             original = MyPolyDataWithPolyBase(mapOf("a" to PolyDerived("foo")), PolyDerived("foo")),
