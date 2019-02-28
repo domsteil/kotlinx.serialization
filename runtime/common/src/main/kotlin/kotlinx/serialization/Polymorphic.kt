@@ -11,7 +11,9 @@ object PolymorphicClassDescriptor : SerialClassDescImpl("kotlin.Any") {
     override val kind: SerialKind = UnionKind.POLYMORPHIC
 
     init {
-        // todo: serial ids for this?
+        // serial ids would be assigned automatically, since
+        // we decided not to support @SerialInfo annotations
+        // in custom serializers code
         addElement("class")
         addElement("value")
     }
